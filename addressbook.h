@@ -19,13 +19,15 @@ struct AddressBook {
 };
 
 int validate_phone(char * phone);
-int duplicate_Phone_validation(char * temp_phone, struct AddressBook *addressBook);
+int duplicate_Phone_validation(char * temp_phone, struct AddressBook *addressBook, int current_index);
 int validate_email(char *email);
-int unique_email_validation(char *temp_emal, struct AddressBook *addressBook);
+int unique_email_validation(char *temp_emal, struct AddressBook *addressBook, int current_index);
 void add_contact(struct AddressBook *addressBook);
 void search_contact(struct AddressBook *addressBook);
 void edit_contact(struct AddressBook *addressBook);
 void delete_contact(struct AddressBook *addressBook);
 void list_contacts(struct AddressBook *addressBook);
+void save_contacts_to_file(struct AddressBook *addressBook);
+void load_contacts_from_file(struct AddressBook *addressBook);
 
 #endif

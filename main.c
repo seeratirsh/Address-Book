@@ -8,6 +8,9 @@ int main()
     addressBook.contactCount = 0;
     addressBook.ir_size = 0;
 
+	/* Load previously saved contacts*/
+	load_contacts_from_file(&addressBook);
+
     do 
     {
 	printf("\nAddress Book Menu:\n");
@@ -16,10 +19,18 @@ int main()
 	printf("3. Edit contact\n");
 	printf("4. Delete contact\n");
 	printf("5. List all contacts\n");
-	printf("6. Exit\n");
+	printf("6. Save and Exit\n");
 	printf("Enter your choice: ");
 
-	scanf("%d", &choice);
+	// Check whether the user entered an integer
+    if(scanf("%d", &choice) != 1)
+    {
+        printf("Invalid input. Enter a number.\n");
+
+        // Clear invalid input from stdin
+        while(getchar() != '\n');
+        continue;
+    }
 
 	switch (choice) 
 	{
@@ -39,6 +50,8 @@ int main()
 		list_contacts(&addressBook);
 		break;
 	    case 6:
+		save_contacts_to_file(&addressBook);
+		
 		printf("Saving and Exiting...\n");
 		break;
 	    default:

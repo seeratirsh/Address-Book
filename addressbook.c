@@ -65,7 +65,7 @@ int validate_phone(char *phone)
 
 // create duplicate number validation
 
-int duplicate_Phone_validation(char * temp_phone, struct AddressBook *addressBook)
+int duplicate_Phone_validation(char * temp_phone, struct AddressBook *addressBook, int current_index)
 {
     /*
     if duplicate contact is found return 1;
@@ -74,6 +74,10 @@ int duplicate_Phone_validation(char * temp_phone, struct AddressBook *addressBoo
       
         for(int j = 0; j < addressBook->contactCount; j++)
         {
+            if(j == current_index)
+            {
+              continue;
+            }
            if(strcmp(addressBook->contacts[j].phone, temp_phone) == 0)
            {
             printf("Duplicate contact found\n");
@@ -128,11 +132,24 @@ int validate_email(char * email)
    position of '@' and the last '.' */
    while(email[i] != '\0')
    {
-     if(email[i] == '@')
-     {
+     // Reject spaces
+    if(email[i] == ' ')
+    {
+        printf("ERROR: Spaces are not allowed.\n");
+        return -1;
+    }
+     // Reject consecutive dots
+    if(email[i] == '.' && email[i + 1] == '.')
+    {
+        printf("ERROR: Consecutive dots are not allowed.\n");
+        return -1;
+    }
+
+    if(email[i] == '@')
+    {
         count++;
         ath_index = i;
-     }
+    }
 
     if(email[i] == '.')
     {
@@ -150,6 +167,13 @@ int validate_email(char * email)
         return -1;
    }
 
+   // @ cannot be the last character
+    if(ath_index == length - 1)
+    {
+        printf("ERROR: Domain is missing.\n");
+        return -1;
+    }
+
     /* A dot must exist after '@' */
    if(dot_found == 0 || ath_index >= dot_index)
    {
@@ -164,21 +188,25 @@ int validate_email(char * email)
         return -1;
     }
 
-    /* Something must exist after the last dot */
-    if (dot_index == length - 1)
+    // Extension must exist and contain at least 2 characters
+    if(length - dot_index - 1 < 2)
     {
-        printf("**ERROR**\nEmail must have an extension after the dot\n");
+        printf("ERROR: Invalid email extension.\n");
         return -1;
     }
 
     return 0;
 }
 
-int unique_email_validation(char *temp_email, struct AddressBook *addressBook)
+int unique_email_validation(char *temp_email, struct AddressBook *addressBook, int current_index)
 {
     
     for(int j = 0; j < addressBook->contactCount; j++)
     {
+        if(j == current_index)
+        {
+          continue;
+        }
         if(strcmp(addressBook->contacts[j].email, temp_email) == 0)
         {
            printf("Duplicate Email found\n");
@@ -197,10 +225,16 @@ void add_contact(struct AddressBook *addressBook)
     char temp_email[50];
     // contactcount willkeep the count of the 100 contacts
     int i = addressBook->contactCount;
+    // keeping the track of addressbook contact count
+    if(addressBook->contactCount >= sizeof(addressBook->contacts) / sizeof(addressBook->contacts[0]))
+    {
+       printf("Address Book is full!\n");
+       return;
+    }
     // read name from the user
     printf("Name\n");
     // getchar();
-    scanf(" %[^\n]", addressBook->contacts[i].name);
+    scanf(" %49[^\n]", addressBook->contacts[i].name);
 
     /*
     Reading phone number into the temporary string, 
@@ -217,9 +251,9 @@ void add_contact(struct AddressBook *addressBook)
     do
     {
         printf("📞Phone \n");
-        scanf(" %[^\n]",temp_phone);
+        scanf(" %14[^\n]",temp_phone);
     } 
-    while (validate_phone(temp_phone) != 0 || duplicate_Phone_validation(temp_phone, addressBook) != 0);/*If validate phone number return 0 means I can copy the temp phone into the real structure*/
+    while (validate_phone(temp_phone) != 0 || duplicate_Phone_validation(temp_phone, addressBook, -1) != 0);/*If validate phone number return 0 means I can copy the temp phone into the real structure*/
     strcpy(addressBook->contacts[i].phone, temp_phone);
     /*
     Reading email into the temp_email string,
@@ -235,9 +269,9 @@ void add_contact(struct AddressBook *addressBook)
     do
     {
         printf("📧Email\n");
-        scanf(" %[^\n]", temp_email);   
+        scanf(" %49[^\n]", temp_email);   
     } 
-    while (validate_email(temp_email) != 0 || unique_email_validation(temp_email, addressBook) != 0);
+    while (validate_email(temp_email) != 0 || unique_email_validation(temp_email, addressBook, -1) != 0);
     strcpy(addressBook->contacts[i].email, temp_email);
     
     addressBook->contactCount++;
@@ -258,19 +292,19 @@ void search_contact(struct AddressBook *addressBook)
     if(choice == 1)
     {
         printf("Enter the name:\n");
-        scanf(" %[^\n]", name_search);
+        scanf(" %49[^\n]", name_search);
     }
 
     else if(choice == 2)
     {
         printf("Enter the phone number:\n");
-        scanf(" %[^\n]", phone_search);
+        scanf(" %14[^\n]", phone_search);
     }
 
     else if(choice == 3)
     {
         printf("Enter the email:\n");
-        scanf(" %[^\n]", email_search);
+        scanf(" %49[^\n]", email_search);
     }
 
     addressBook->ir_size = 0;
@@ -298,7 +332,7 @@ void search_contact(struct AddressBook *addressBook)
         {
             addressBook->index_record[addressBook->ir_size] = i;
             addressBook->ir_size++;
-
+             printf("---------------------------------------\n");
              printf("\nName: %s\n", addressBook->contacts[i].name);
              printf("Phone Number: %s\n", addressBook->contacts[i].phone);
              printf("Email ID: %s\n", addressBook->contacts[i].email);
@@ -309,6 +343,7 @@ void search_contact(struct AddressBook *addressBook)
 
     if( addressBook->ir_size == 0 )
     {
+       printf("-----------------------------\n");
        printf("Contact not found\n");
     }
 
@@ -360,6 +395,7 @@ void edit_contact(struct AddressBook *addressBook)
    }
    else
    {
+     printf("-----------------------------\n");
      printf("Multiple contacts found:\n");
      for(int i = 0; i < addressBook->ir_size; i++)
      {
@@ -369,7 +405,7 @@ void edit_contact(struct AddressBook *addressBook)
             addressBook->contacts[ind].phone, 
             addressBook->contacts[ind].email);
      }
-
+     printf("-----------------------------\n");
      printf("Enter the serial number of the contact to edit: ");
      if(scanf(" %d", &serial_num) != 1)
      {
@@ -385,11 +421,12 @@ void edit_contact(struct AddressBook *addressBook)
     index = addressBook->index_record[serial_num - 1];
 
    }
-
+    printf("-----------------------------\n");
     printf("Which field do you want to edit?\n");
     printf("1. Name\n");
     printf("2. Phone number\n");
     printf("3. Email ID\n");
+    printf("-----------------------------\n");
     printf("Enter your choice: ");
 
     if (scanf(" %d", &choice) != 1)
@@ -402,10 +439,12 @@ void edit_contact(struct AddressBook *addressBook)
    if(choice == 1)
    {
     printf("Enter new name:\n");
-    scanf(" %[^\n]", temp_name);
+    scanf(" %49[^\n]", temp_name);
 
     strcpy(addressBook->contacts[index].name, temp_name);
+    printf("-----------------------------\n");
     printf("Name updated successfully\n");
+    printf("-----------------------------\n");
    }
 
    else if(choice == 2)
@@ -413,11 +452,13 @@ void edit_contact(struct AddressBook *addressBook)
      do
      {
         printf("Enter new phone number: ");
-        scanf(" %[^\n]", temp_phone);
+        scanf(" %14[^\n]", temp_phone);
      }
-    while(validate_phone(temp_phone) != 0 || duplicate_Phone_validation(temp_phone, addressBook) != 0);
+    while(validate_phone(temp_phone) != 0 || duplicate_Phone_validation(temp_phone, addressBook, index) != 0);
     strcpy(addressBook->contacts[index].phone, temp_phone);
+    printf("-----------------------------\n");
     printf("Phone number updated successfully\n");
+    printf("-----------------------------\n");
      
    }
 
@@ -426,11 +467,13 @@ void edit_contact(struct AddressBook *addressBook)
      do
      {
         printf("Enter new email ID: ");
-        scanf(" %[^\n]", temp_email);
+        scanf(" %49[^\n]", temp_email);
      }
-     while(validate_email(temp_email) != 0 || unique_email_validation(temp_email, addressBook) != 0);
+     while(validate_email(temp_email) != 0 || unique_email_validation(temp_email, addressBook, -index) != 0);
      strcpy(addressBook->contacts[index].email, temp_email);
+     printf("-----------------------------\n");
      printf("Email updated successfully\n");
+     printf("-----------------------------\n");
    }
    else
    {
@@ -468,6 +511,87 @@ END
 }
 void delete_contact(struct AddressBook *addressBook)
 {
+    /*Calling the search contact function, bcs to dlt you must search which one you want to delete*/
+    search_contact(addressBook);
+    int index;
+    int serial_num;
+
+    /*Check whether any contact is found
+   if not return;
+   Nothing found, nothing to delete
+   */
+   if(addressBook->ir_size == 0)
+   {
+    return;
+   }
+
+   /* One match: use it. 
+   Several matches: let the user pick. */
+
+   if(addressBook->ir_size == 1)
+   {
+     index = addressBook->index_record[0];
+   }
+   else
+   {
+     printf("-----------------------------\n");
+     printf("Multiple contacts found:\n");
+     for(int i = 0; i < addressBook->ir_size; i++)
+     {
+        int ind = addressBook->index_record[i];
+        printf("%d. %s | %s | %s\n", i + 1, 
+            addressBook->contacts[ind].name, 
+            addressBook->contacts[ind].phone, 
+            addressBook->contacts[ind].email);
+     }
+
+     //printf("-----------------------------\n");
+     printf("Enter the serial number of the contact which you want to delete: ");
+     if(scanf(" %d", &serial_num) != 1)
+     {
+        printf("Invalid input\n");
+        return;
+     }
+     if(serial_num < 1 || serial_num > addressBook->ir_size)
+     {
+         printf("Invalid serial number\n");
+        return;
+     }
+
+     index = addressBook->index_record[serial_num - 1]; // serial num - 1 bcs above we have i + 1 if i is zero it is becoming 1, so to get the actual index 
+
+   }
+
+   char ch; /*Taking permission from the user before deleting*/
+
+   printf("Are you sure that you want to delete the contact?\n ('Y/y' or ('N'/'n')): ");
+   scanf(" %c", &ch);
+   if(ch == 'y' || ch == 'Y')
+   {
+       for(int i = index; i < addressBook->contactCount - 1; i++) 
+       /*move towards left or left shift after deleting the contact or shrink
+       then decrement the size;
+       */
+      {
+        addressBook->contacts[i] = addressBook->contacts[i + 1];
+      }
+
+      addressBook->contactCount--;
+      printf("-----------------------------\n");
+      printf("Contact Deleted Successfully😕!\n");
+      printf("-----------------------------\n");
+   }
+   else if(ch == 'n' || ch == 'N')
+   {
+     printf("-----------------------------\n");
+     printf("Contact Not Deleted\n");
+     printf("-----------------------------\n");
+   }
+   else
+   {
+     printf("Invalid, choose from Y or N only\n");
+   }
+ 
 
 }
 void list_contacts(struct AddressBook *addressBook)
@@ -490,5 +614,78 @@ void list_contacts(struct AddressBook *addressBook)
       printf("------------------------------------------------\n");
    }
 }
+
+/*Saving the contact from structure to the file permanently
+by using file i/o 
+1. open the file in write mode
+2. open the file in read mode*/
+
+
+void save_contacts_to_file(struct AddressBook *addressBook)
+{
+    FILE *fptr = fopen("database.csv", "w");
+
+    if(fptr == NULL)
+    {
+        printf("Unable to open file\n");
+        return;
+    }
+
+    for(int i = 0; i < addressBook->contactCount; i++)
+    {
+        int ret = fprintf(fptr, "%s, %s, %s\n",
+                          addressBook->contacts[i].name,
+                          addressBook->contacts[i].phone,
+                          addressBook->contacts[i].email);
+
+        if(ret < 0)
+        {
+            printf("Error writing contact to file\n");
+            fclose(fptr);
+            return;
+        }
+    }
+
+    if(fclose(fptr) == EOF)
+    {
+        printf("Error closing file\n");
+        return;
+    }
+
+    printf("Contacts saved successfully\n");
+}
+
+
+void load_contacts_from_file(struct AddressBook *addressBook)
+{
+    FILE* fptr = fopen("database.csv", "r");
+
+    if(fptr == NULL)
+    {
+        printf("File do not exist\n");
+        return;
+    }
+
+    int i = addressBook->contactCount;
+    while(i < sizeof(addressBook->contacts) / sizeof(addressBook->contacts[0]) )
+    {
+        int ret = fscanf(fptr, "%49[^,], %14[^,], %49[^\n]\n", addressBook->contacts[i].name,
+                                                               addressBook->contacts[i].phone,
+                                                               addressBook->contacts[i].email);
+
+        
+
+        if(ret != 3)
+        {
+            break;
+        }                                       
+        addressBook->contactCount++;
+        i++;                                       
+    }
+
+    fclose(fptr);
+
+}
+    
 
 
