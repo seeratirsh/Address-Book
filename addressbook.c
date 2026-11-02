@@ -1,3 +1,17 @@
+/*
+~~Documentation~~
+Author: Seerat Irshad
+Submission Date: 2nd NOv 2026
+
+*Description-
+Created addressbook project which will store the contact details of a person along with
+his/her name, email, andd phone number.
+- for that I have created a structure then later 
+- one more stuucture named as struct addressbook I have created where I am using my previous structure
+struct contact to create array of 100 members.
+
+*/
+
 #include "addressbook.h"
 
 /* creating a function to valide phone number*/
@@ -275,6 +289,7 @@ void add_contact(struct AddressBook *addressBook)
     strcpy(addressBook->contacts[i].email, temp_email);
     
     addressBook->contactCount++;
+    printf("Contact created succesfully✅\n");
 }
 
 void search_contact(struct AddressBook *addressBook)
