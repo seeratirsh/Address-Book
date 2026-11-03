@@ -28,7 +28,7 @@ address-book/
 
 I split the code into three files on purpose:
 
-- `addressbook.h` is the contract. It defines the structures and declares every function.
+- `addressbook.h` It defines the structures and declares every function.
 - `addressbook.c` holds the actual logic for each function.
 - `main.c` stays small. It shows the menu, reads the user's choice and calls the right function.
 
